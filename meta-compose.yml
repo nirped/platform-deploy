@@ -1,0 +1,71 @@
+version: '2'
+
+services:
+  namenode:
+    image: hadoop-namenode
+    hostname: namenode
+    ports:
+      - "50070:50070"
+    env_file: env.list
+    volumes:
+      - namenode-data:/var/hadoop/data/namenode
+    networks:
+      - hadoop
+
+  datanode1:
+    image: hadoop-datanode
+    depends_on: 
+      - namenode
+    env_file: env.list
+    volumes:
+      - datanode1-data:/var/hadoop/data/datanode
+    networks:
+      - hadoop
+
+  spark-hdfs-worker1:
+    image: spark-worker
+    env_file: env.list
+    network_mode: "service:datanode1"
+ 
+  spark-master:
+    image: spark-master
+    env_file: env.list
+    ports:
+      - "8080:8080"
+    networks:
+      - hadoop
+
+  {% for n in range(1,2) %}
+
+  cassandra{{n}} :
+    image: cassandra
+    env_file: env.list
+  {% if n > 1 %}
+    depends_on:
+      - cassandra1 
+  {% endif %}
+    volumes:
+      - cassandra-data{{n}}:/var/cassandra/data
+    networks:
+      - hadoop 
+
+  spark-cassandra-worker{{n}}:
+    image: spark-worker
+    env_file: env.list 
+    network_mode: "service:cassandra{{n}}"
+
+  {% endfor %}
+
+networks:
+  hadoop:
+    driver: bridge
+
+volumes:
+    namenode-data:
+
+    datanode1-data:
+
+{% for n in range(1,2) %}
+
+    cassandra-data{{n}}:
+{% endfor %}

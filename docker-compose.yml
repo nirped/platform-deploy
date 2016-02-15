@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+  namenode:
+    image: nirped/docker-hadoop-namenode
+    hostname: namenode
+    ports:
+      - "50070:50070"
+    env_file: env.list
+    volumes:
+      - namenode-data:/var/hadoop/data/namenode
+    networks:
+      - hadoop
+
+  datanode1:
+    image: nirped/docker-hadoop-datanode
+    depends_on: 
+      - namenode
+    env_file: env.list
+    volumes:
+      - datanode1-data:/var/hadoop/data/datanode
+    networks:
+      - hadoop
+
+networks:
+  hadoop:
+    driver: bridge
+
+volumes:
+    namenode-data:
+
+    datanode1-data:
+
